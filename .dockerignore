@@ -1,0 +1,40 @@
+# バイナリファイル
+main
+*.exe
+*.out
+
+# モジュールキャッシュやビルドキャッシュ
+/pkg
+/bin
+/build
+
+# VCS関連
+.git
+.gitignore
+
+# IDEやエディタの設定ファイル
+*.swp
+*.swo
+*.DS_Store
+.vscode
+.idea
+
+# テスト出力など
+*.test
+coverage.out
+
+# Docker自体に不要なファイル
+Dockerfile
+.dockerignore
+
+# OSのゴミファイル
+Thumbs.db
+ehthumbs.db
+
+node_modules
+*.log
+.env
+*.local
+coverage/
+bin/
+tmp/
