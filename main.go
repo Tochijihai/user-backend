@@ -1,81 +1,64 @@
 package main
 
 import (
-    "context"
-    "log"
-    "net/http"
-    "user-backend/app"
+	"context"
+	"log"
+	"net/http"
 	"strings"
+	"user-backend/app"
 
-    "github.com/aws/aws-lambda-go/events"
-    "github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type routeKey struct {
-    Path   string
-    Method string
+	Path   string
+	Method string
 }
 
-var routes = map[routeKey]func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error){
-    {Path: "/test", Method: "POST"}: app.HandleCreate,
-    // {Path: "/test", Method: "GET"}:  app.HandleGet,
+// ルーティング定義
+var routes = map[routeKey]func(context.Context, events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error){
+	{Path: "/test", Method: "POST"}: app.HandleCreate,
+}
+
+// パスからAPI Gatewayのステージやパスプレフィックスを取り除く
+func normalizePath(rawPath string) string {
+	if after, ok := strings.CutPrefix(rawPath, "/dev/user"); ok {
+		return after
+	}
+	return rawPath
 }
 
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	// CloudWatch Logsに出力
-	log.Printf("Request: %s %s", req.RequestContext.HTTP.Method, req.RawPath)
-	// API Gateway v2のパスプロキシから実際のパスを抽出
-	// /dev/user/test -> /test
+	method := req.RequestContext.HTTP.Method
 	originalPath := req.RawPath
-	path := req.RawPath
-	if strings.HasPrefix(path, "/dev/user") {
-		path = strings.TrimPrefix(path, "/dev/user")
-	}
+	path := normalizePath(originalPath)
 	if path == "" {
 		path = "/"
 	}
-	
-	method := req.RequestContext.HTTP.Method
-	
+
+	log.Printf("[INFO] Method: %s | Path: %s -> %s", method, originalPath, path)
+
 	key := routeKey{
 		Path:   path,
 		Method: method,
 	}
+
 	if routeHandler, ok := routes[key]; ok {
-		// API Gateway v1のリクエストに変換してハンドラーを呼び出し
-		v1Req := events.APIGatewayProxyRequest{
-			HTTPMethod: method,
-			Path:       originalPath,
-			Body:       req.Body,
-			Headers:    req.Headers,
-		}
-		v1Resp, err := routeHandler(ctx, v1Req)
-		if err != nil {
-			return events.APIGatewayV2HTTPResponse{
-				StatusCode: http.StatusInternalServerError,
-				Body:       "Internal Server Error",
-			}, err
-		}
-		
-		// API Gateway v2のレスポンスに変換
-		return events.APIGatewayV2HTTPResponse{
-			StatusCode: v1Resp.StatusCode,
-			Body:       v1Resp.Body,
-			Headers:    v1Resp.Headers,
-		}, nil
+		return routeHandler(ctx, req)
 	}
-	
-	// デバッグ情報を含む404レスポンス
-	debugInfo := "Not Found - Original Path: " + originalPath + ", Processed Path: " + path + ", Method: " + method
+
+	log.Printf("[WARN] No handler found for %s %s", method, path)
+
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: http.StatusNotFound,
 		Headers: map[string]string{
-            "Content-Type": "application/json",
-        },
-		Body: debugInfo,
+			"Content-Type": "application/json",
+		},
+		Body: `{"message":"Not Found"}`,
 	}, nil
 }
 
 func main() {
-    lambda.Start(handler)
+	lambda.Start(handler)
 }

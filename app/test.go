@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-func HandleCreate(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{
+func HandleCreate(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: http.StatusOK,
 		Body:       "Hello, World!",
 	}, nil
