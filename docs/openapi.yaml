@@ -206,6 +206,11 @@ components:
                 type: string
                 format: uuid
                 example: "00000000-0000-0000-0000-000000000001"
+              createdDataTime:
+                description: コメント日時
+                type: string
+                format: date-time
+                example: "2023-10-01T12:44"
               userName:
                 description: コメント投稿者の名前
                 type: string
@@ -213,7 +218,7 @@ components:
               comment:
                 description: コメント情報
                 type: string
-                example: ""
+                example: "すごくきれいざます"
     CommentRequest:
       type: object
       required:
