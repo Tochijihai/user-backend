@@ -1,0 +1,249 @@
+openapi: 3.0.0
+info:
+  title: Tochijihai User API
+  description: 都知事杯のユーザー向けAPIです。
+  version: 0.1.9
+
+tags:
+  - name: Opinion
+    description: 意見投稿関連のAPI
+
+paths:
+  /user/opinions:
+    post:
+      tags:
+        - Opinion
+      summary: 意見投稿API
+      description: ユーザーから取得した意見を登録するAPIです。
+      operationId: postUserOpinions
+      requestBody:
+        description: requestBody
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpinionRequest"
+      responses:
+        "201":
+          description: post成功
+    get:
+      tags:
+        - Opinion
+      summary: ユーザー意見取得API
+      description: 意見一覧を取得するAPIです。
+      operationId: getUserOpinions
+      responses:
+        "200":
+          description: 意見取得成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Opinion"
+
+  /user/opinions/{opinionId}/comments:
+    post:
+      tags:
+        - Opinion
+      summary: コメント投稿API
+      description: 投稿に対するコメントを登録するAPIです。
+      operationId: postUserComments
+      parameters:
+        - name: opinionId
+          in: path
+          required: true
+          description: 投稿を識別するid
+          schema:
+            type: string
+            format: uuid
+            example: "00000000-0000-0000-0000-000000000001"
+      requestBody:
+        description: requestBody
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+      responses:
+        "200":
+          description: post成功
+
+  /user/opinions/{opinionId}/reactions:
+    put:
+      tags:
+        - Opinion
+      summary: リアクションAPI
+      description: 投稿に対するリアクションを登録するAPIです。
+      operationId: putOpinionReactions
+      parameters:
+        - name: opinionId
+          in: path
+          required: true
+          description: 投稿を識別するid
+          schema:
+            type: string
+            format: uuid
+            example: "00000000-0000-0000-0000-000000000001"
+      requestBody:
+        description: requestBody
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReactionRequest"
+      responses:
+        "201":
+          description: 更新後のリアクション情報
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reaction:
+                    description: リアクション
+                    type: boolean
+                    example: true
+                    enum: [true, false]
+
+#components Define of Schemas
+components:
+  schemas:
+    OpinionRequest:
+      type: object
+      required:
+        - mailAddress
+        - coordinate
+        - opinion
+        - reactionCount
+        - comments
+      properties:
+        mailAddress:
+          #TODO: 本人情報どうする？ハッカソンではログインしない都合上、適当だろうしメルアドを仮設定
+          description: 投稿ユーザーのメールアドレス(本人情報)
+          type: string
+          example: "tochiji.hai@xxx.xxx"
+        coordinate:
+          description: 投稿情報に紐づく位置情報
+          type: object
+          properties:
+            latitude:
+              description: 緯度
+              type: number
+              format: double
+              example: 35.6802117
+            longitude:
+              description: 経度
+              type: number
+              format: double
+              example: 139.7576692
+        opinion:
+          description: 投稿内容
+          type: string
+          example: "すごくきれいな場所です！"
+          minLength: 1
+          maxLength: 500
+    Opinion:
+      type: object
+      required:
+        - opinionId
+        - userName
+        - coordinate
+        - opinion
+        - createdDataTime
+      properties:
+        opinionId:
+          description: 投稿を識別するid
+          type: string
+          format: uuid
+          example: "00000000-0000-0000-0000-000000000001"
+        userName:
+          description: 投稿ユーザーの名前
+          type: string
+          example: "都知事杯太郎"
+        coordinate:
+          description: 投稿情報に紐づく位置情報
+          type: object
+          properties:
+            latitude:
+              description: 緯度
+              type: number
+              format: double
+              example: 35.6802117
+            longitude:
+              description: 経度
+              type: number
+              format: double
+              example: 139.7576692
+        opinion:
+          description: 投稿内容
+          type: string
+          example: "すごくきれいな場所です！"
+          minLength: 1
+          maxLength: 500
+        createdDataTime:
+          description: 投稿日時
+          type: string
+          format: date-time
+          example: "2023-10-01T12:44"
+        reactionCount:
+          description: リアクション数
+          type: integer
+          example: 10
+          minimum: 0
+        isReactioned:
+          description: 自分がリアクション済かどうか
+          type: boolean
+          example: true
+        comments:
+          description: コメント一覧
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                description: コメントID
+                type: string
+                format: uuid
+                example: "00000000-0000-0000-0000-000000000001"
+              userName:
+                description: コメント投稿者の名前
+                type: string
+                example: "都知事杯花子"
+              comment:
+                description: コメント情報
+                type: string
+                example: ""
+    CommentRequest:
+      type: object
+      required:
+        - mailAddress
+        - comment
+      properties:
+        mailAddress:
+          #TODO: 本人情報どうする？ハッカソンではログインしない都合上、適当だろうしメルアドを仮設定
+          description: 投稿ユーザーのメールアドレス(本人情報)
+          type: string
+          example: "tochiji.hai@xxx.xxx"
+        comment:
+          description: コメント内容
+          type: string
+          example: "ほんまきれいやな"
+          minLength: 1
+          maxLength: 300
+    ReactionRequest:
+      type: object
+      required:
+        - mailAddress
+        - reation
+      properties:
+        mailAddress:
+          #TODO: 本人情報どうする？ハッカソンではログインしない都合上、適当だろうしメルアドを仮設定
+          description: 投稿ユーザーのメールアドレス(本人情報)
+          type: string
+          example: "tochiji.hai@xxx.xxx"
+        reaction:
+          description: リアクション
+          type: boolean
+          example: true
+          enum: [true, false]
