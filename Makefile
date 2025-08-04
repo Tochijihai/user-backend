@@ -18,10 +18,14 @@ clean:
 	docker rmi -f $(APP_NAME) || true
 	docker rmi -f $(BUILDER_NAME) || true
 
-zip: build-builder
+local-zip:
 	docker run --rm $(BUILDER_NAME) sh -c "apk add --no-cache zip && zip function.zip bootstrap"
-
-extract:
 	docker create --name $(CONTAINER_NAME) $(BUILDER_NAME)
 	docker cp $(CONTAINER_NAME):/app/function.zip .
 	docker rm $(CONTAINER_NAME)
+
+swagger-ui:
+	docker run --rm -p 8080:8080 \
+	-e SWAGGER_JSON=/docs/openapi.yaml \
+	-v $(PWD)/docs:/docs \
+	swaggerapi/swagger-ui
