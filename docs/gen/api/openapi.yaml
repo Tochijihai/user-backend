@@ -1,0 +1,282 @@
+openapi: 3.0.0
+info:
+  description: 都知事杯のユーザー向けAPIです。
+  title: Tochijihai User API
+  version: 0.1.9
+servers:
+- url: /
+tags:
+- description: 意見投稿関連のAPI
+  name: Opinion
+paths:
+  /user/opinions:
+    get:
+      description: 意見一覧を取得するAPIです。
+      operationId: getUserOpinions
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Opinion'
+                type: array
+          description: 意見取得成功
+      summary: ユーザー意見取得API
+      tags:
+      - Opinion
+    post:
+      description: ユーザーから取得した意見を登録するAPIです。
+      operationId: postUserOpinions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpinionRequest'
+        description: requestBody
+        required: true
+      responses:
+        "201":
+          description: post成功
+      summary: 意見投稿API
+      tags:
+      - Opinion
+  /user/opinions/{opinionId}/comments:
+    post:
+      description: 投稿に対するコメントを登録するAPIです。
+      operationId: postUserComments
+      parameters:
+      - description: 投稿を識別するid
+        explode: false
+        in: path
+        name: opinionId
+        required: true
+        schema:
+          example: 00000000-0000-0000-0000-000000000001
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+        description: requestBody
+        required: true
+      responses:
+        "200":
+          description: post成功
+      summary: コメント投稿API
+      tags:
+      - Opinion
+  /user/opinions/{opinionId}/reactions:
+    put:
+      description: 投稿に対するリアクションを登録するAPIです。
+      operationId: putOpinionReactions
+      parameters:
+      - description: 投稿を識別するid
+        explode: false
+        in: path
+        name: opinionId
+        required: true
+        schema:
+          example: 00000000-0000-0000-0000-000000000001
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+        description: requestBody
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/putOpinionReactions_201_response'
+          description: 更新後のリアクション情報
+      summary: リアクションAPI
+      tags:
+      - Opinion
+components:
+  schemas:
+    OpinionRequest:
+      example:
+        coordinate:
+          latitude: 35.6802117
+          longitude: 139.7576692
+        mailAddress: tochiji.hai@xxx.xxx
+        opinion: すごくきれいな場所です！
+      properties:
+        mailAddress:
+          description: 投稿ユーザーのメールアドレス(本人情報)
+          example: tochiji.hai@xxx.xxx
+          type: string
+        coordinate:
+          $ref: '#/components/schemas/OpinionRequest_coordinate'
+        opinion:
+          description: 投稿内容
+          example: すごくきれいな場所です！
+          maxLength: 500
+          minLength: 1
+          type: string
+      required:
+      - comments
+      - coordinate
+      - mailAddress
+      - opinion
+      - reactionCount
+      type: object
+    Opinion:
+      example:
+        opinionId: 00000000-0000-0000-0000-000000000001
+        coordinate:
+          latitude: 35.6802117
+          longitude: 139.7576692
+        comments:
+        - comment: すごくきれいざます
+          id: 00000000-0000-0000-0000-000000000001
+          userName: 都知事杯花子
+          createdDataTime: 2000-01-23T04:56:07.000+00:00
+        - comment: すごくきれいざます
+          id: 00000000-0000-0000-0000-000000000001
+          userName: 都知事杯花子
+          createdDataTime: 2000-01-23T04:56:07.000+00:00
+        isReactioned: true
+        userName: 都知事杯太郎
+        createdDataTime: 2000-01-23T04:56:07.000+00:00
+        reactionCount: 10
+        opinion: すごくきれいな場所です！
+      properties:
+        opinionId:
+          description: 投稿を識別するid
+          example: 00000000-0000-0000-0000-000000000001
+          format: uuid
+          type: string
+        userName:
+          description: 投稿ユーザーの名前
+          example: 都知事杯太郎
+          type: string
+        coordinate:
+          $ref: '#/components/schemas/OpinionRequest_coordinate'
+        opinion:
+          description: 投稿内容
+          example: すごくきれいな場所です！
+          maxLength: 500
+          minLength: 1
+          type: string
+        createdDataTime:
+          description: 投稿日時
+          format: date-time
+          type: string
+        reactionCount:
+          description: リアクション数
+          example: 10
+          minimum: 0
+          type: integer
+        isReactioned:
+          description: 自分がリアクション済かどうか
+          example: true
+          type: boolean
+        comments:
+          description: コメント一覧
+          items:
+            $ref: '#/components/schemas/Opinion_comments_inner'
+          type: array
+      required:
+      - coordinate
+      - createdDataTime
+      - opinion
+      - opinionId
+      - userName
+      type: object
+    CommentRequest:
+      example:
+        mailAddress: tochiji.hai@xxx.xxx
+        comment: ほんまきれいやな
+      properties:
+        mailAddress:
+          description: 投稿ユーザーのメールアドレス(本人情報)
+          example: tochiji.hai@xxx.xxx
+          type: string
+        comment:
+          description: コメント内容
+          example: ほんまきれいやな
+          maxLength: 300
+          minLength: 1
+          type: string
+      required:
+      - comment
+      - mailAddress
+      type: object
+    ReactionRequest:
+      example:
+        reaction: true
+        mailAddress: tochiji.hai@xxx.xxx
+      properties:
+        mailAddress:
+          description: 投稿ユーザーのメールアドレス(本人情報)
+          example: tochiji.hai@xxx.xxx
+          type: string
+        reaction:
+          description: リアクション
+          example: true
+          type: boolean
+      required:
+      - mailAddress
+      - reation
+      type: object
+    putOpinionReactions_201_response:
+      example:
+        reaction: true
+      properties:
+        reaction:
+          description: リアクション
+          example: true
+          type: boolean
+      type: object
+    OpinionRequest_coordinate:
+      description: 投稿情報に紐づく位置情報
+      example:
+        latitude: 35.6802117
+        longitude: 139.7576692
+      properties:
+        latitude:
+          description: 緯度
+          example: 35.6802117
+          format: double
+          type: number
+        longitude:
+          description: 経度
+          example: 139.7576692
+          format: double
+          type: number
+      type: object
+    Opinion_comments_inner:
+      example:
+        comment: すごくきれいざます
+        id: 00000000-0000-0000-0000-000000000001
+        userName: 都知事杯花子
+        createdDataTime: 2000-01-23T04:56:07.000+00:00
+      properties:
+        id:
+          description: コメントID
+          example: 00000000-0000-0000-0000-000000000001
+          format: uuid
+          type: string
+        createdDataTime:
+          description: コメント日時
+          format: date-time
+          type: string
+        userName:
+          description: コメント投稿者の名前
+          example: 都知事杯花子
+          type: string
+        comment:
+          description: コメント情報
+          example: すごくきれいざます
+          type: string
+      type: object
