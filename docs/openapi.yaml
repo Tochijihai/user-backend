@@ -123,6 +123,10 @@ components:
           description: 投稿ユーザーのメールアドレス(本人情報)
           type: string
           example: "tochiji.hai@xxx.xxx"
+        userName:
+          description: 投稿ユーザーの名前
+          type: string
+          example: "都知事杯太郎"
         coordinate:
           description: 投稿情報に紐づく位置情報
           type: object

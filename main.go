@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 
 	openapi "user-backend/docs/gen/go"
+	app "user-backend/app"
+	infra "user-backend/infra"
 )
 
 // ResponseWriterラッパー
@@ -90,8 +92,10 @@ func proxyEventToHTTPRequest(req events.APIGatewayV2HTTPRequest) (*http.Request,
 func handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	log.Printf("Incoming request: %s %s", req.RequestContext.HTTP.Method, req.RawPath)
 
+	// DynamoDB接続
+	dbClient := infra.ConnectDynamoDBService()
 	// OpenAPIで生成されたrouterを作成
-	opinionAPIService := openapi.NewOpinionAPIService()
+	opinionAPIService := app.NewOpinionService(dbClient)
 	opinionAPIController := openapi.NewOpinionAPIController(opinionAPIService)
 	router := openapi.NewRouter(opinionAPIController)
 

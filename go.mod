@@ -9,9 +9,12 @@ require (
 	github.com/gorilla/mux v1.8.1
 )
 
+require github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.29.0 // indirect
+
 require (
 	github.com/aws/aws-sdk-go-v2 v1.38.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.4 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.20.3
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.3 // indirect
@@ -23,4 +26,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.33.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.37.0 // indirect
 	github.com/aws/smithy-go v1.22.5 // indirect
+	github.com/google/uuid v1.6.0
 )
