@@ -3,6 +3,8 @@ package infra
 import (
 	"context"
 	"fmt"
+	"log"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -40,4 +42,54 @@ func (db *DynamoDBClient) SaveOpinion(ctx context.Context, mailAddress string, l
 	}
 
 	return id, nil
+}
+
+// GetOpinions - ユーザーの意見を取得するメソッド
+func (db *DynamoDBClient) GetOpinions(ctx context.Context) ([]OpinionItem, error) {
+	var allOpinions []OpinionItem
+	var lastEvaluatedKey map[string]types.AttributeValue
+
+	for {
+		input := &dynamodb.ScanInput{
+			TableName:         aws.String(opinionsTableName),
+			ExclusiveStartKey: lastEvaluatedKey,
+		}
+
+		result, err := db.Client.Scan(ctx, input)
+		if err != nil {
+			log.Printf("DynamoDB Scan failed: %v", err)
+			return nil, err
+		}
+
+		// DynamoDBから返された各項目をOpinion構造体にデコード
+		var opinionsPage []OpinionItem
+		for _, item := range result.Items {
+			var opinion OpinionItem
+			opinion.ID = item["id"].(*types.AttributeValueMemberS).Value
+			opinion.MailAddress = item["mailAddress"].(*types.AttributeValueMemberS).Value
+			opinion.Latitude, _ = strconv.ParseFloat(item["latitude"].(*types.AttributeValueMemberN).Value, 64)
+			opinion.Longitude, _ = strconv.ParseFloat(item["longitude"].(*types.AttributeValueMemberN).Value, 64)
+			opinion.Opinion = item["opinion"].(*types.AttributeValueMemberS).Value
+			if err != nil {
+				log.Printf("Failed to unmarshal DynamoDB item: %v", err)
+				return nil, err
+			}
+			opinionsPage = append(opinionsPage, opinion)
+		}
+		if err != nil {
+			log.Printf("Failed to unmarshal DynamoDB items: %v", err)
+			return nil, err
+		}
+
+		// 取得した項目をすべてOpinionsリストに追加
+		allOpinions = append(allOpinions, opinionsPage...)
+
+		// LastEvaluatedKeyがnilでない場合、再度取得
+		if result.LastEvaluatedKey == nil {
+			break
+		}
+		lastEvaluatedKey = result.LastEvaluatedKey
+	}
+
+	return allOpinions, nil
 }

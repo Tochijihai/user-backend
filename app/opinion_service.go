@@ -32,3 +32,13 @@ func (s *OpinionService) PostUserOpinions(ctx context.Context, opinion openapi.O
 	// 正常時は201を返す
 	return openapi.Response(201, nil), nil
 }
+
+// GetUserOpinions - ユーザー意見取得API
+func (s *OpinionService) GetUserOpinions(ctx context.Context) (openapi.ImplResponse, error) {
+	opinions, err := s.db.GetOpinions(ctx) // DynamoDBから意見を取得する処理
+	if err != nil {
+		return openapi.Response(500, nil), err
+	}
+
+	return openapi.Response(200, opinions), nil // 正常時は200と意見を返す
+}
