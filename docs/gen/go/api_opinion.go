@@ -19,7 +19,7 @@ import (
 
 // OpinionAPIController binds http requests to an api service and writes the service results to the http response
 type OpinionAPIController struct {
-	service OpinionAPIServicer
+	service      OpinionAPIServicer
 	errorHandler ErrorHandler
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time" // 追加
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -21,6 +22,7 @@ type OpinionItem struct {
 }
 
 const opinionsTableName = "opinions"
+const commentsTableName = "comments"
 
 func (db *DynamoDBClient) SaveOpinion(ctx context.Context, mailAddress string, latitude, longitude float64, opinion string) (string, error) {
 	id := uuid.New().String()
@@ -42,6 +44,29 @@ func (db *DynamoDBClient) SaveOpinion(ctx context.Context, mailAddress string, l
 	}
 
 	return id, nil
+}
+
+// SaveComment - コメントをDynamoDBに保存するメソッド
+func (db *DynamoDBClient) SaveComment(ctx context.Context, opinionId string, mailAddress string, comment string) (string, error) {
+	commentId := uuid.New().String()
+
+	item := map[string]types.AttributeValue{
+		"opinionid":       &types.AttributeValueMemberS{Value: opinionId},
+		"commentId":       &types.AttributeValueMemberS{Value: commentId},
+		"mailAddress":     &types.AttributeValueMemberS{Value: mailAddress},
+		"comment":         &types.AttributeValueMemberS{Value: comment},
+		"createdDateTime": &types.AttributeValueMemberS{Value: time.Now().Format(time.RFC3339)},
+	}
+
+	_, err := db.Client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(commentsTableName),
+		Item:      item,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return commentId, nil
 }
 
 // GetOpinions - ユーザーの意見を取得するメソッド
