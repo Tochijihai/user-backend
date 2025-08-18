@@ -33,6 +33,16 @@ func (s *OpinionService) PostUserOpinions(ctx context.Context, opinion openapi.O
 	return openapi.Response(201, nil), nil
 }
 
+// GetUserOpinions - ユーザー意見取得API
+func (s *OpinionService) GetUserOpinions(ctx context.Context) (openapi.ImplResponse, error) {
+	opinions, err := s.db.GetOpinions(ctx) // DynamoDBから意見を取得する処理
+	if err != nil {
+		return openapi.Response(500, nil), err
+	}
+
+	return openapi.Response(200, opinions), nil // 正常時は200と意見を返す
+}
+
 // PostUserComments - コメント投稿API
 func (s *OpinionService) PostUserComments(ctx context.Context, opinionId string, commentRequest openapi.CommentRequest) (openapi.ImplResponse, error) {
 	// DynamoDBにコメントを保存する処理
@@ -50,12 +60,16 @@ func (s *OpinionService) PostUserComments(ctx context.Context, opinionId string,
 	return openapi.Response(201, nil), nil
 }
 
-// GetUserOpinions - ユーザー意見取得API
-func (s *OpinionService) GetUserOpinions(ctx context.Context) (openapi.ImplResponse, error) {
-	opinions, err := s.db.GetOpinions(ctx) // DynamoDBから意見を取得する処理
+// PostUserComments - コメント取得API
+func (s *OpinionService) GetUserComments(ctx context.Context, opinionId string) (openapi.ImplResponse, error) {
+	// DynamoDBにコメントを保存する処理
+	comments, err := s.db.GetComment(
+		ctx,
+		opinionId,
+	)
 	if err != nil {
 		return openapi.Response(500, nil), err
 	}
 
-	return openapi.Response(200, opinions), nil // 正常時は200と意見を返す
+	return openapi.Response(200, comments), nil
 }

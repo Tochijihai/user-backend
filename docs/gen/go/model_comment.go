@@ -9,17 +9,17 @@
 
 package openapi
 
-
 import (
 	"time"
 )
 
+type Comment struct {
 
-
-type OpinionCommentsInner struct {
+	// 意見ID
+	Id string `json:"id,omitempty"`
 
 	// コメントID
-	Id string `json:"id,omitempty"`
+	CommentId string `json:"commentId,omitempty"`
 
 	// コメント日時
 	CreatedDataTime time.Time `json:"createdDataTime,omitempty"`
@@ -32,11 +32,11 @@ type OpinionCommentsInner struct {
 }
 
 // AssertOpinionCommentsInnerRequired checks if the required fields are not zero-ed
-func AssertOpinionCommentsInnerRequired(obj OpinionCommentsInner) error {
+func AssertOpinionCommentsInnerRequired(obj Comment) error {
 	return nil
 }
 
 // AssertOpinionCommentsInnerConstraints checks if the values respects the defined constraints
-func AssertOpinionCommentsInnerConstraints(obj OpinionCommentsInner) error {
+func AssertOpinionCommentsInnerConstraints(obj Comment) error {
 	return nil
 }

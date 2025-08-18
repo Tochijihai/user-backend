@@ -42,6 +42,32 @@ paths:
       tags:
       - Opinion
   /user/opinions/{opinionId}/comments:
+    get:
+      description: コメント一覧を取得するAPIです。
+      operationId: getUserComments
+      parameters:
+      - description: 投稿を識別するid
+        explode: false
+        in: path
+        name: opinionId
+        required: true
+        schema:
+          example: 00000000-0000-0000-0000-000000000001
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Comment'
+                type: array
+          description: コメント取得成功
+      summary: ユーザーコメント取得API
+      tags:
+      - Opinion
     post:
       description: 投稿に対するコメントを登録するAPIです。
       operationId: postUserComments
@@ -124,7 +150,6 @@ components:
           minLength: 1
           type: string
       required:
-      - comments
       - coordinate
       - mailAddress
       - opinion
@@ -136,15 +161,6 @@ components:
         coordinate:
           latitude: 35.6802117
           longitude: 139.7576692
-        comments:
-        - comment: すごくきれいざます
-          id: 00000000-0000-0000-0000-000000000001
-          userName: 都知事杯花子
-          createdDataTime: 2000-01-23T04:56:07.000+00:00
-        - comment: すごくきれいざます
-          id: 00000000-0000-0000-0000-000000000001
-          userName: 都知事杯花子
-          createdDataTime: 2000-01-23T04:56:07.000+00:00
         isReactioned: true
         userName: 都知事杯太郎
         createdDataTime: 2000-01-23T04:56:07.000+00:00
@@ -181,11 +197,6 @@ components:
           description: 自分がリアクション済かどうか
           example: true
           type: boolean
-        comments:
-          description: コメント一覧
-          items:
-            $ref: '#/components/schemas/Opinion_comments_inner'
-          type: array
       required:
       - coordinate
       - createdDataTime
@@ -255,15 +266,21 @@ components:
           format: double
           type: number
       type: object
-    Opinion_comments_inner:
+    Comment:
       example:
         comment: すごくきれいざます
         id: 00000000-0000-0000-0000-000000000001
+        commentId: 00000000-0000-0000-0001-000000000001
         userName: 都知事杯花子
         createdDataTime: 2000-01-23T04:56:07.000+00:00
       properties:
         id:
-          description: コメントID
+          description: 投稿ID
+          example: 00000000-0000-0000-0000-000000000001
+          format: uuid
+          type: string
+        commentId:
+          description: コメントを識別するid
           example: 00000000-0000-0000-0000-000000000001
           format: uuid
           type: string

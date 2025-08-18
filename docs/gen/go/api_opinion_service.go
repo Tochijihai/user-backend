@@ -48,6 +48,17 @@ func (s *OpinionAPIService) PostUserComments(ctx context.Context, opinionId stri
 	return Response(http.StatusNotImplemented, nil), errors.New("PostUserComments method not implemented")
 }
 
+// GetUserComments - コメント取得API
+func (s *OpinionAPIService) GetUserComments(ctx context.Context, opinionId string) (ImplResponse, error) {
+	// TODO - update PostUserComments with the required logic for this service method.
+	// Add api_opinion_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+
+	// TODO: Uncomment the next line to return response Response(200, {}) or use other options such as http.Ok ...
+	// return Response(200, nil),nil
+
+	return Response(http.StatusNotImplemented, nil), errors.New("PostUserComments method not implemented")
+}
+
 // PostUserOpinions - 意見投稿API
 func (s *OpinionAPIService) PostUserOpinions(ctx context.Context, opinionRequest OpinionRequest) (ImplResponse, error) {
 	// TODO - update PostUserOpinions with the required logic for this service method.

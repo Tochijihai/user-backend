@@ -21,6 +21,14 @@ type OpinionItem struct {
 	Opinion     string
 }
 
+type CommentItem struct {
+	ID              string // OpinionID
+	CommentID       string // コメントID
+	MailAddress     string
+	Comment         string
+	CreatedDateTime time.Time
+}
+
 const opinionsTableName = "opinions"
 const commentsTableName = "comments"
 
@@ -44,29 +52,6 @@ func (db *DynamoDBClient) SaveOpinion(ctx context.Context, mailAddress string, l
 	}
 
 	return id, nil
-}
-
-// SaveComment - コメントをDynamoDBに保存するメソッド
-func (db *DynamoDBClient) SaveComment(ctx context.Context, opinionId string, mailAddress string, comment string) (string, error) {
-	commentId := uuid.New().String()
-
-	item := map[string]types.AttributeValue{
-		"opinionid":       &types.AttributeValueMemberS{Value: opinionId},
-		"commentId":       &types.AttributeValueMemberS{Value: commentId},
-		"mailAddress":     &types.AttributeValueMemberS{Value: mailAddress},
-		"comment":         &types.AttributeValueMemberS{Value: comment},
-		"createdDateTime": &types.AttributeValueMemberS{Value: time.Now().Format(time.RFC3339)},
-	}
-
-	_, err := db.Client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(commentsTableName),
-		Item:      item,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	return commentId, nil
 }
 
 // GetOpinions - ユーザーの意見を取得するメソッド
@@ -117,4 +102,71 @@ func (db *DynamoDBClient) GetOpinions(ctx context.Context) ([]OpinionItem, error
 	}
 
 	return allOpinions, nil
+}
+
+// SaveComment - コメントをDynamoDBに保存するメソッド
+func (db *DynamoDBClient) SaveComment(ctx context.Context, opinionId string, mailAddress string, comment string) (string, error) {
+	commentId := uuid.New().String()
+
+	item := map[string]types.AttributeValue{
+		"opinionId":       &types.AttributeValueMemberS{Value: opinionId},
+		"commentId":       &types.AttributeValueMemberS{Value: commentId},
+		"mailAddress":     &types.AttributeValueMemberS{Value: mailAddress},
+		"comment":         &types.AttributeValueMemberS{Value: comment},
+		"createdDateTime": &types.AttributeValueMemberS{Value: time.Now().Format(time.RFC3339)},
+	}
+
+	_, err := db.Client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(commentsTableName),
+		Item:      item,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return commentId, nil
+}
+
+// GetComment - OpinionIDに紐づくコメントをDynamoDBから取得するメソッド
+func (db *DynamoDBClient) GetComment(ctx context.Context, opinionId string) ([]CommentItem, error) {
+	var comments []CommentItem
+	var lastEvaluatedKey map[string]types.AttributeValue
+
+	for {
+		input := &dynamodb.QueryInput{
+			TableName:              aws.String(commentsTableName),
+			IndexName:              aws.String("opinionId-createdDateTime-index"), // GSI名を指定
+			KeyConditionExpression: aws.String("opinionId = :opinionId"),
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":opinionId": &types.AttributeValueMemberS{Value: opinionId},
+			},
+			ExclusiveStartKey: lastEvaluatedKey,
+		}
+
+		result, err := db.Client.Query(ctx, input)
+		if err != nil {
+			log.Printf("DynamoDB Query failed: %v", err)
+			return nil, err
+		}
+
+		// DynamoDBから返された各項目をComment構造体にデコード
+		for _, item := range result.Items {
+			var comment CommentItem
+			comment.ID = item["opinionId"].(*types.AttributeValueMemberS).Value
+			comment.CommentID = item["commentId"].(*types.AttributeValueMemberS).Value
+			comment.MailAddress = item["mailAddress"].(*types.AttributeValueMemberS).Value
+			comment.Comment = item["comment"].(*types.AttributeValueMemberS).Value
+			comment.CreatedDateTime, _ = time.Parse(time.RFC3339, item["createdDateTime"].(*types.AttributeValueMemberS).Value)
+
+			comments = append(comments, comment)
+		}
+
+		// LastEvaluatedKeyがnilでない場合、再度取得
+		if result.LastEvaluatedKey == nil {
+			break
+		}
+		lastEvaluatedKey = result.LastEvaluatedKey
+	}
+
+	return comments, nil
 }

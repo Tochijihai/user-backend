@@ -9,13 +9,10 @@
 
 package openapi
 
-
 import (
-	"time"
 	"errors"
+	"time"
 )
-
-
 
 type Opinion struct {
 
@@ -38,18 +35,15 @@ type Opinion struct {
 
 	// 自分がリアクション済かどうか
 	IsReactioned bool `json:"isReactioned,omitempty"`
-
-	// コメント一覧
-	Comments []OpinionCommentsInner `json:"comments,omitempty"`
 }
 
 // AssertOpinionRequired checks if the required fields are not zero-ed
 func AssertOpinionRequired(obj Opinion) error {
 	elements := map[string]interface{}{
-		"opinionId": obj.OpinionId,
-		"userName": obj.UserName,
-		"coordinate": obj.Coordinate,
-		"opinion": obj.Opinion,
+		"opinionId":       obj.OpinionId,
+		"userName":        obj.UserName,
+		"coordinate":      obj.Coordinate,
+		"opinion":         obj.Opinion,
 		"createdDataTime": obj.CreatedDataTime,
 	}
 	for name, el := range elements {
@@ -61,11 +55,7 @@ func AssertOpinionRequired(obj Opinion) error {
 	if err := AssertOpinionRequestCoordinateRequired(obj.Coordinate); err != nil {
 		return err
 	}
-	for _, el := range obj.Comments {
-		if err := AssertOpinionCommentsInnerRequired(el); err != nil {
-			return err
-		}
-	}
+
 	return nil
 }
 

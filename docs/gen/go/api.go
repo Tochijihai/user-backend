@@ -14,26 +14,25 @@ import (
 	"net/http"
 )
 
-
-
 // OpinionAPIRouter defines the required methods for binding the api requests to a responses for the OpinionAPI
 // The OpinionAPIRouter implementation should parse necessary information from the http request,
 // pass the data to a OpinionAPIServicer to perform the required actions, then write the service results to the http response.
-type OpinionAPIRouter interface { 
+type OpinionAPIRouter interface {
 	GetUserOpinions(http.ResponseWriter, *http.Request)
+	GetUserComments(http.ResponseWriter, *http.Request)
 	PostUserComments(http.ResponseWriter, *http.Request)
 	PostUserOpinions(http.ResponseWriter, *http.Request)
 	PutOpinionReactions(http.ResponseWriter, *http.Request)
 }
 
-
 // OpinionAPIServicer defines the api actions for the OpinionAPI service
 // This interface intended to stay up to date with the openapi yaml used to generate it,
 // while the service implementation can be ignored with the .openapi-generator-ignore file
 // and updated with the logic required for the API.
-type OpinionAPIServicer interface { 
+type OpinionAPIServicer interface {
 	GetUserOpinions(context.Context) (ImplResponse, error)
 	PostUserComments(context.Context, string, CommentRequest) (ImplResponse, error)
+	GetUserComments(context.Context, string) (ImplResponse, error)
 	PostUserOpinions(context.Context, OpinionRequest) (ImplResponse, error)
 	PutOpinionReactions(context.Context, string, ReactionRequest) (ImplResponse, error)
 }

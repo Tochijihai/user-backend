@@ -50,20 +50,26 @@ func NewOpinionAPIController(s OpinionAPIServicer, opts ...OpinionAPIOption) Rou
 // Routes returns all the api routes for the OpinionAPIController
 func (c *OpinionAPIController) Routes() Routes {
 	return Routes{
+
 		"GetUserOpinions": Route{
 			strings.ToUpper("Get"),
 			"/user/opinions",
 			c.GetUserOpinions,
+		},
+		"PostUserOpinions": Route{
+			strings.ToUpper("Post"),
+			"/user/opinions",
+			c.PostUserOpinions,
 		},
 		"PostUserComments": Route{
 			strings.ToUpper("Post"),
 			"/user/opinions/{opinionId}/comments",
 			c.PostUserComments,
 		},
-		"PostUserOpinions": Route{
-			strings.ToUpper("Post"),
-			"/user/opinions",
-			c.PostUserOpinions,
+		"GetUserComments": Route{
+			strings.ToUpper("Get"),
+			"/user/opinions/{opinionId}/comments",
+			c.GetUserComments,
 		},
 		"PutOpinionReactions": Route{
 			strings.ToUpper("Put"),
@@ -109,6 +115,24 @@ func (c *OpinionAPIController) PostUserComments(w http.ResponseWriter, r *http.R
 		return
 	}
 	result, err := c.service.PostUserComments(r.Context(), opinionIdParam, commentRequestParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetUserOpinions - ユーザーコメント取得API
+func (c *OpinionAPIController) GetUserComments(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	opinionIdParam := params["opinionId"]
+	if opinionIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"opinionId"}, nil)
+		return
+	}
+	result, err := c.service.GetUserComments(r.Context(), opinionIdParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
