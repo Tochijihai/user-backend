@@ -33,6 +33,10 @@ type CommentItem struct {
 	CreatedDateTime time.Time
 }
 
+type Reaction struct {
+	IsReactioned bool `json:"IsReactioned"`
+}
+
 const opinionsTableName = "opinions"
 const commentsTableName = "comments"
 const reactionsTableName = "reactions"
@@ -177,7 +181,7 @@ func (db *DynamoDBClient) GetComment(ctx context.Context, opinionId string) ([]C
 }
 
 // SaveReaction - リアクションをDynamoDBに保存(更新)するメソッド
-func (db *DynamoDBClient) SaveReaction(ctx context.Context, opinionId string, mailAddress string, isReactioned bool) (bool, error) {
+func (db *DynamoDBClient) SaveReaction(ctx context.Context, opinionId string, mailAddress string, isReactioned bool) (Reaction, error) {
 	item := map[string]types.AttributeValue{
 		"opinionId":    &types.AttributeValueMemberS{Value: opinionId},
 		"mailAddress":  &types.AttributeValueMemberS{Value: mailAddress},
@@ -189,8 +193,7 @@ func (db *DynamoDBClient) SaveReaction(ctx context.Context, opinionId string, ma
 		Item:      item,
 	})
 	if err != nil {
-		return false, err
+		return Reaction{}, err
 	}
-
-	return isReactioned, nil
+	return Reaction{IsReactioned: isReactioned}, nil
 }

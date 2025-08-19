@@ -11,7 +11,10 @@ tags:
 paths:
   /user/opinions:
     get:
+      summary: ユーザー意見取得API
       description: 意見一覧を取得するAPIです。
+      tags:
+      - Opinion
       operationId: getUserOpinions
       responses:
         "200":
@@ -22,11 +25,12 @@ paths:
                   $ref: '#/components/schemas/Opinion'
                 type: array
           description: 意見取得成功
-      summary: ユーザー意見取得API
+
+    post:
+      summary: 意見投稿API
+      description: ユーザーから取得した意見を登録するAPIです。
       tags:
       - Opinion
-    post:
-      description: ユーザーから取得した意見を登録するAPIです。
       operationId: postUserOpinions
       requestBody:
         content:
@@ -38,12 +42,13 @@ paths:
       responses:
         "201":
           description: post成功
-      summary: 意見投稿API
-      tags:
-      - Opinion
+
   /user/opinions/{opinionId}/comments:
     get:
+      summary: ユーザーコメント取得API
       description: コメント一覧を取得するAPIです。
+      tags:
+      - Opinion
       operationId: getUserComments
       parameters:
       - description: 投稿を識別するid
@@ -65,11 +70,12 @@ paths:
                   $ref: '#/components/schemas/Comment'
                 type: array
           description: コメント取得成功
-      summary: ユーザーコメント取得API
+
+    post:
+      summary: コメント投稿API
+      description: 投稿に対するコメントを登録するAPIです。
       tags:
       - Opinion
-    post:
-      description: 投稿に対するコメントを登録するAPIです。
       operationId: postUserComments
       parameters:
       - description: 投稿を識別するid
@@ -92,12 +98,45 @@ paths:
       responses:
         "200":
           description: post成功
-      summary: コメント投稿API
+
+  /user/opinions/{opinionId}/reactions:
+    get:
+      summary: リアクション情報取得API
       tags:
       - Opinion
-  /user/opinions/{opinionId}/reactions:
+      description: 投稿に対するリアクション情報を取得するAPIです。
+      operationId: getOpinionReactions
+      parameters:
+      - description: 投稿を識別するid
+        explode: false
+        in: path
+        name: opinionId
+        required: true
+        schema:
+          example: 00000000-0000-0000-0000-000000000001
+          format: uuid
+          type: string
+        style: simple
+      - description: 投稿ユーザーのメールアドレス
+        in: header
+        name: mailAddress
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ReactionInfo'
+          description: リアクション取得成功
+      
     put:
+      summary: リアクションAPI
       description: 投稿に対するリアクションを登録するAPIです。
+      tags:
+      - Opinion
       operationId: putOpinionReactions
       parameters:
       - description: 投稿を識別するid
@@ -124,9 +163,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/putOpinionReactions_201_response'
           description: 更新後のリアクション情報
-      summary: リアクションAPI
-      tags:
-      - Opinion
+
 components:
   schemas:
     OpinionRequest:
@@ -161,10 +198,8 @@ components:
         coordinate:
           latitude: 35.6802117
           longitude: 139.7576692
-        isReactioned: true
         userName: 都知事杯太郎
         createdDataTime: 2000-01-23T04:56:07.000+00:00
-        reactionCount: 10
         opinion: すごくきれいな場所です！
       properties:
         opinionId:
@@ -188,15 +223,6 @@ components:
           description: 投稿日時
           format: date-time
           type: string
-        reactionCount:
-          description: リアクション数
-          example: 10
-          minimum: 0
-          type: integer
-        isReactioned:
-          description: 自分がリアクション済かどうか
-          example: true
-          type: boolean
       required:
       - coordinate
       - createdDataTime
@@ -242,9 +268,9 @@ components:
       type: object
     putOpinionReactions_201_response:
       example:
-        reaction: true
+        isReactioned: true
       properties:
-        reaction:
+        isReactioned:
           description: リアクション
           example: true
           type: boolean
@@ -297,3 +323,24 @@ components:
           example: すごくきれいざます
           type: string
       type: object
+    ReactionInfo:
+      example:
+        reactionCountt: 10
+        isReactioned: true
+      
+      properties:
+        reactionCount:
+          description: リアクション数
+          example: 10
+          minimum: 0
+          type: integer
+        isReactioned:
+          description: 自分がリアクション済かどうか
+          example: true
+          type: boolean
+      required:
+      - reactionCount
+      - isReactioned
+      type: object
+      
+

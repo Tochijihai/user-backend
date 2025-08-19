@@ -87,5 +87,5 @@ func (s *OpinionService) PutOpinionReactions(ctx context.Context, opinionId stri
 		return openapi.Response(500, nil), err
 	}
 
-	return openapi.Response(200, isReactioned), nil
+	return openapi.Response(201, isReactioned), nil
 }
