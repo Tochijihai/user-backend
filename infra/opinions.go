@@ -37,6 +37,11 @@ type Reaction struct {
 	IsReactioned bool `json:"IsReactioned"`
 }
 
+type ReactionInfo struct {
+	IsReactioned  bool  `json:"IsReactioned"`
+	ReactionCount int32 `json:"ReactionCount"`
+}
+
 const opinionsTableName = "opinions"
 const commentsTableName = "comments"
 const reactionsTableName = "reactions"
@@ -196,4 +201,52 @@ func (db *DynamoDBClient) SaveReaction(ctx context.Context, opinionId string, ma
 		return Reaction{}, err
 	}
 	return Reaction{IsReactioned: isReactioned}, nil
+}
+
+// SaveReaction - リアクション情報をDynamoDBから取得するメソッド
+func (db *DynamoDBClient) GetReactionInfo(ctx context.Context, opinionId string, mailAddress string) (ReactionInfo, error) {
+	// IsReactionedの取得
+	isReactionedInput := &dynamodb.GetItemInput{
+		TableName: aws.String(reactionsTableName),
+		Key: map[string]types.AttributeValue{
+			"opinionId":   &types.AttributeValueMemberS{Value: opinionId},
+			"mailAddress": &types.AttributeValueMemberS{Value: mailAddress},
+		},
+	}
+
+	result, err := db.Client.GetItem(ctx, isReactionedInput)
+	if err != nil {
+		return ReactionInfo{}, err
+	}
+
+	var isReactioned bool
+	if result.Item != nil {
+		isReactioned = result.Item["isReactioned"].(*types.AttributeValueMemberBOOL).Value
+	}
+
+	// ReactionCountの取得
+	reactionCountInput := &dynamodb.QueryInput{
+		TableName:              aws.String(reactionsTableName),
+		KeyConditionExpression: aws.String("opinionId = :opinionId"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":opinionId": &types.AttributeValueMemberS{Value: opinionId},
+		},
+	}
+
+	reactionCountResult, err := db.Client.Query(ctx, reactionCountInput)
+	if err != nil {
+		return ReactionInfo{}, err
+	}
+
+	var reactionCount int32
+	for _, item := range reactionCountResult.Items {
+		if item["isReactioned"].(*types.AttributeValueMemberBOOL).Value {
+			reactionCount++
+		}
+	}
+
+	return ReactionInfo{
+		IsReactioned:  isReactioned,
+		ReactionCount: reactionCount,
+	}, nil
 }

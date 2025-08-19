@@ -96,7 +96,6 @@ paths:
           description: post成功
       
   /user/opinions/{opinionId}/reactions:
-  
     get:
       summary: リアクション情報取得API
       description: 投稿に対するリアクション情報を取得するAPIです。

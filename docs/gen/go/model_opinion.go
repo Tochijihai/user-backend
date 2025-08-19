@@ -10,7 +10,6 @@
 package openapi
 
 import (
-	"errors"
 	"time"
 )
 
@@ -29,12 +28,6 @@ type Opinion struct {
 
 	// 投稿日時
 	CreatedDataTime time.Time `json:"createdDataTime"`
-
-	// リアクション数
-	ReactionCount int32 `json:"reactionCount,omitempty"`
-
-	// 自分がリアクション済かどうか
-	IsReactioned bool `json:"isReactioned,omitempty"`
 }
 
 // AssertOpinionRequired checks if the required fields are not zero-ed
@@ -56,13 +49,5 @@ func AssertOpinionRequired(obj Opinion) error {
 		return err
 	}
 
-	return nil
-}
-
-// AssertOpinionConstraints checks if the values respects the defined constraints
-func AssertOpinionConstraints(obj Opinion) error {
-	if obj.ReactionCount < 0 {
-		return &ParsingError{Err: errors.New(errMsgMinValueConstraint)}
-	}
 	return nil
 }

@@ -23,6 +23,7 @@ type OpinionAPIRouter interface {
 	PostUserComments(http.ResponseWriter, *http.Request)
 	PostUserOpinions(http.ResponseWriter, *http.Request)
 	PutOpinionReactions(http.ResponseWriter, *http.Request)
+	GetOpinionReactionsInfo(http.ResponseWriter, *http.Request)
 }
 
 // OpinionAPIServicer defines the api actions for the OpinionAPI service
@@ -35,4 +36,5 @@ type OpinionAPIServicer interface {
 	GetUserComments(context.Context, string) (ImplResponse, error)
 	PostUserOpinions(context.Context, OpinionRequest) (ImplResponse, error)
 	PutOpinionReactions(context.Context, string, ReactionRequest) (ImplResponse, error)
+	GetOpinionReactionsInfo(context.Context, string, ReactionInfoRequest) (ImplResponse, error)
 }

@@ -70,6 +70,11 @@ func (s *OpinionAPIService) PostUserOpinions(ctx context.Context, opinionRequest
 	return Response(http.StatusNotImplemented, nil), errors.New("PostUserOpinions method not implemented")
 }
 
+// GetOpinionReactionsInfo - リアクション情報取得API
+func (s *OpinionAPIService) GetOpinionReactionsInfo(context.Context, string, ReactionInfoRequest) (ImplResponse, error) {
+	return Response(http.StatusNotImplemented, nil), errors.New("GetUserOpinions method not implemented")
+}
+
 // PutOpinionReactions - リアクションAPI
 func (s *OpinionAPIService) PutOpinionReactions(ctx context.Context, opinionId string, reactionRequest ReactionRequest) (ImplResponse, error) {
 	// TODO - update PutOpinionReactions with the required logic for this service method.

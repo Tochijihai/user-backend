@@ -89,3 +89,18 @@ func (s *OpinionService) PutOpinionReactions(ctx context.Context, opinionId stri
 
 	return openapi.Response(201, isReactioned), nil
 }
+
+// GetOpinionReactionsInfo - リアクション情報取得API
+func (s *OpinionService) GetOpinionReactionsInfo(ctx context.Context, opinionId string, reactionInfoRequestHeader openapi.ReactionInfoRequest) (openapi.ImplResponse, error) {
+	// DynamoDBからリアクション情報を取得する処理
+	isReactioned, err := s.db.GetReactionInfo(
+		ctx,
+		opinionId,
+		reactionInfoRequestHeader.MailAddress,
+	)
+	if err != nil {
+		return openapi.Response(500, nil), err
+	}
+
+	return openapi.Response(200, isReactioned), nil
+}

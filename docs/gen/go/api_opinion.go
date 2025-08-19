@@ -76,6 +76,11 @@ func (c *OpinionAPIController) Routes() Routes {
 			"/user/opinions/{opinionId}/reactions",
 			c.PutOpinionReactions,
 		},
+		"GetOpinionReactionsInfo": Route{
+			strings.ToUpper("Get"),
+			"/user/opinions/{opinionId}/reactions",
+			c.GetOpinionReactionsInfo,
+		},
 	}
 }
 
@@ -193,6 +198,44 @@ func (c *OpinionAPIController) PutOpinionReactions(w http.ResponseWriter, r *htt
 		return
 	}
 	result, err := c.service.PutOpinionReactions(r.Context(), opinionIdParam, reactionRequestParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// GetOpinionReactionsInfo - リアクション情報取得API
+func (c *OpinionAPIController) GetOpinionReactionsInfo(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	opinionIdParam := params["opinionId"]
+	if opinionIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"opinionId"}, nil)
+		return
+	}
+
+	// mailAddressをヘッダーから取得
+	mailAddress := r.Header.Get("mailAddress")
+	if mailAddress == "" {
+		c.errorHandler(w, r, &RequiredError{"mailAddress"}, nil)
+		return
+	}
+	// ヘッダーから取得したmailAddressの値をreactionInfoRequestParamに設定
+	reactionInfoRequestParam := ReactionInfoRequest{
+		MailAddress: mailAddress,
+	}
+
+	if err := AssertReactionInfoRequestRequired(reactionInfoRequestParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertReactionInfoRequestConstraints(reactionInfoRequestParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.GetOpinionReactionsInfo(r.Context(), opinionIdParam, reactionInfoRequestParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)
