@@ -73,3 +73,19 @@ func (s *OpinionService) GetUserComments(ctx context.Context, opinionId string) 
 
 	return openapi.Response(200, comments), nil
 }
+
+// PutOpinionReactions - リアクション更新API
+func (s *OpinionService) PutOpinionReactions(ctx context.Context, opinionId string, reactionRequestParam openapi.ReactionRequest) (openapi.ImplResponse, error) {
+	// DynamoDBにコメントを保存する処理
+	isReactioned, err := s.db.SaveReaction(
+		ctx,
+		opinionId,
+		reactionRequestParam.MailAddress,
+		reactionRequestParam.Reaction,
+	)
+	if err != nil {
+		return openapi.Response(500, nil), err
+	}
+
+	return openapi.Response(200, isReactioned), nil
+}

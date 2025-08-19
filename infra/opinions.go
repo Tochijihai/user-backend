@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"time" // 追加
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -31,6 +31,7 @@ type CommentItem struct {
 
 const opinionsTableName = "opinions"
 const commentsTableName = "comments"
+const reactionsTableName = "reactions"
 
 func (db *DynamoDBClient) SaveOpinion(ctx context.Context, mailAddress string, latitude, longitude float64, opinion string) (string, error) {
 	id := uuid.New().String()
@@ -169,4 +170,23 @@ func (db *DynamoDBClient) GetComment(ctx context.Context, opinionId string) ([]C
 	}
 
 	return comments, nil
+}
+
+// SaveReaction - リアクションをDynamoDBに保存(更新)するメソッド
+func (db *DynamoDBClient) SaveReaction(ctx context.Context, opinionId string, mailAddress string, isReactioned bool) (bool, error) {
+	item := map[string]types.AttributeValue{
+		"opinionId":    &types.AttributeValueMemberS{Value: opinionId},
+		"mailAddress":  &types.AttributeValueMemberS{Value: mailAddress},
+		"isReactioned": &types.AttributeValueMemberBOOL{Value: isReactioned},
+	}
+
+	_, err := db.Client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(reactionsTableName),
+		Item:      item,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return isReactioned, nil
 }
