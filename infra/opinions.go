@@ -13,11 +13,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type Coordinate struct {
+	Latitude  float64 `json:"Latitude"`
+	Longitude float64 `json:"Longitude"`
+}
+
 type OpinionItem struct {
 	ID          string
 	MailAddress string
-	Latitude    float64
-	Longitude   float64
+	Coordinate  Coordinate `json:"Coordinate"`
 	Opinion     string
 }
 
@@ -78,8 +82,8 @@ func (db *DynamoDBClient) GetOpinions(ctx context.Context) ([]OpinionItem, error
 			var opinion OpinionItem
 			opinion.ID = item["id"].(*types.AttributeValueMemberS).Value
 			opinion.MailAddress = item["mailAddress"].(*types.AttributeValueMemberS).Value
-			opinion.Latitude, _ = strconv.ParseFloat(item["latitude"].(*types.AttributeValueMemberN).Value, 64)
-			opinion.Longitude, _ = strconv.ParseFloat(item["longitude"].(*types.AttributeValueMemberN).Value, 64)
+			opinion.Coordinate.Latitude, _ = strconv.ParseFloat(item["latitude"].(*types.AttributeValueMemberN).Value, 64)
+			opinion.Coordinate.Longitude, _ = strconv.ParseFloat(item["longitude"].(*types.AttributeValueMemberN).Value, 64)
 			opinion.Opinion = item["opinion"].(*types.AttributeValueMemberS).Value
 			if err != nil {
 				log.Printf("Failed to unmarshal DynamoDB item: %v", err)
